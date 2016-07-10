@@ -87,5 +87,5 @@ function Sprite() {
     };
 }
     /*---------------------------------------*/
-    /* EN OF SPRITE UTILITY FUNCTIONS        */
+    /* END OF SPRITE UTILITY FUNCTIONS        */
     /*---------------------------------------*/

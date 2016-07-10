@@ -27,25 +27,16 @@ var GF = function () {
     var assets = {};
 
 
-
-    // The monster !
-    var monster = {
-        dead: false,
-        x: 10,
-        y: 10,
-        width: 50,
-        height: 50,
-        speed: 100 // pixels/s this time !
-    };
-
     // Woman object and sprites
     // sprite index corresponding to posture
     var WOMAN_DIR_RIGHT = 6;
     var WOMAN_DIR_LEFT = 2;
     var woman = {
-        x: 100,
-        y: 200,
+        dead:false,
+        x: 10,
+        y: 10,
         width: 48,
+        height: 92,
         speed: 100, // pixels/s this time !
         direction: WOMAN_DIR_RIGHT
     };
@@ -64,39 +55,6 @@ var GF = function () {
         ctx.clearRect(0, 0, w, h);
     }
 
-    // Functions for drawing the monster and maybe other objects
-    function drawMyMonster(x, y) {
-        // draw a big monster !
-        // head
-
-        // save the context
-        ctx.save();
-
-        // translate the coordinate system, draw relative to it
-        ctx.translate(x, y);
-        ctx.scale(0.5, 0.5);
-
-        // (0, 0) is the top left corner of the monster.
-        ctx.strokeRect(0, 0, 100, 100);
-
-        // eyes
-        ctx.fillRect(20, 20, 10, 10);
-        ctx.fillRect(65, 20, 10, 10);
-
-        // nose
-        ctx.strokeRect(45, 40, 10, 40);
-
-        // mouth
-        ctx.strokeRect(35, 84, 30, 10);
-
-        // teeth
-        ctx.fillRect(38, 84, 10, 10);
-        ctx.fillRect(52, 84, 10, 10);
-
-        // restore the context
-        ctx.restore();
-    }
-
 
     var mainLoop = function (time) {
         //main function, called each frame 
@@ -108,19 +66,14 @@ var GF = function () {
         // Clear the canvas
         clearCanvas();
 
-        if (monster.dead) {
+        if (woman.dead) {
             currentGameState = gameStates.gameOver;
         }
 
         switch (currentGameState) {
             case gameStates.gameRunning:
 
-                // draw the monster
-                drawMyMonster(monster.x, monster.y);
-
-                // Check inputs and move the monster
-                updateMonsterPosition(delta);
-
+            
                 // Draw a woman moving left and right
                 womanSprites[woman.direction].draw(ctx, woman.x, woman.y);
                 updateWomanPosition(delta);
@@ -130,6 +83,8 @@ var GF = function () {
 
                 // shoot
                 fire();
+                updateParticles(delta);
+                drawParticles(ctx);
 
                 // display Score
                 displayScore();
@@ -163,11 +118,12 @@ var GF = function () {
     };
 
     function startNewGame() {
-        monster.dead = false;
+        woman.dead = false;
         currentLevelTime = 5000;
         currentLevel = 1;
         nbBalls = 5;
         createBalls(nbBalls);
+        bulletsArray = []
         currentGameState = gameStates.gameRunning;
     }
 
@@ -190,53 +146,39 @@ var GF = function () {
         ctx.fillText("Points: " + points, 300, 120);
         ctx.restore();
     }
-    function updateMonsterPosition(delta) {
-        monster.speedX = monster.speedY = 0;
+
+    function updateWomanPosition(delta) {
+        woman.speedX = woman.speedY = 0;
         // check inputStates
         if (inputStates.left) {
-            monster.speedX = -monster.speed;
+            woman.speedX = -woman.speed;
+            woman.direction = WOMAN_DIR_LEFT;
         }
         if (inputStates.up) {
-            monster.speedY = -monster.speed;
+            woman.speedY = -woman.speed;
         }
         if (inputStates.right) {
-            monster.speedX = monster.speed;
+            woman.speedX = woman.speed;
+            woman.direction = WOMAN_DIR_RIGHT;
         }
         if (inputStates.down) {
-            monster.speedY = monster.speed;
+            woman.speedY = woman.speed;
         }
         if (inputStates.space) {
         }
         if (inputStates.mousePos) {
         }
         if (inputStates.mousedown) {
-            monster.speed = 500;
+            woman.speed = 500;
         } else {
             // mouse up
-            monster.speed = 100;
+            woman.speed = 100;
         }
 
         // Compute the incX and inY in pixels depending
         // on the time elasped since last redraw
-        monster.x += calcDistanceToMove(delta, monster.speedX);
-        monster.y += calcDistanceToMove(delta, monster.speedY);
-    }
-
-    function updateWomanPosition(delta) {
-
-        // check collision on left or right
-        if (((woman.x + woman.width) > canvas.width) || (woman.x < 0)) {
-            // inverse speed
-            woman.speed = -woman.speed;
-        }
-
-        // change sprite direction
-        if (woman.speed >= 0) {
-            woman.direction = WOMAN_DIR_RIGHT;
-        } else {
-            woman.direction = WOMAN_DIR_LEFT;
-        }
-        woman.x += calcDistanceToMove(delta, woman.speed);
+        woman.x += calcDistanceToMove(delta, woman.speedX);
+        woman.y += calcDistanceToMove(delta, woman.speedY);
     }
 
     function updateBalls(delta) {
@@ -250,14 +192,14 @@ var GF = function () {
             // 2) test if the ball collides with a wall
             testCollisionWithWalls(ball, w, h);
 
-            // Test if the monster collides
-            if (circRectsOverlap(monster.x, monster.y,
-                monster.width, monster.height,
+            // Test if the woman collides
+            if (circRectsOverlap(woman.x, woman.y,
+                woman.width, woman.height,
                 ball.x, ball.y, ball.radius)) {
 
                 //change the color of the ball
                 ball.color = 'red';
-                monster.dead = true;
+                woman.dead = true;
                 // Here, a sound effect greatly improves
                 // the experience!
                 plopSound.play();
@@ -272,8 +214,8 @@ var GF = function () {
         if (inputStates.fire) {
             console.log("fire");
             inputStates.fire = false;
-            x = monster.x + 25;
-            y = monster.y + 25;
+            var x = woman.x + 25;
+            var y = woman.y + 25;
 
             // Compute the direction so that the bullet is fired
             // toward the mouse position
@@ -309,11 +251,10 @@ var GF = function () {
                     bullet.radius,
                     ball.x, ball.y, ball.radius)) {
 
-                    //change the color of the ball
                     // here draw an explosion
-                    bullet.color = 'yellow';
-                    ball.color = 'green';
-
+                    createExplosion(ball.x, ball.y, ball.color, "Boom!");
+                    plopSound.play();
+                    
                     bulletsArray.splice(i, 1);
                     ballArray.splice(j, 1);
                     points += 1;
@@ -329,6 +270,24 @@ var GF = function () {
         }
     }
 
+    // To draw the explosions, taken from mainline.i3s.unice.fr/mooc/SkywardBound/ */
+
+    function updateParticles(delta) {
+        for (var i = 0; i < particles.length; i++) {
+            var particle = particles[i];
+            particle.update(delta);
+        }
+    }
+
+    function drawParticles(ctx) {
+        for (var i = 0; i < particles.length; i++) {
+            var particle = particles[i];
+            particle.draw(ctx);
+        }
+    }
+
+    /* end explosion part */
+
     function createBalls(numberOfBalls) {
         // Start from an empty array
         ballArray = [];
@@ -343,9 +302,9 @@ var GF = function () {
                 30);
 
             // Do not create a ball on the player. We augmented the ball radius 
-            // to sure the ball is created far from the monster. 
-            if (!circRectsOverlap(monster.x, monster.y,
-                monster.width, monster.height,
+            // to sure the ball is created far from the woman. 
+            if (!circRectsOverlap(woman.x, woman.y,
+                woman.width, woman.height,
                 ball.x, ball.y, ball.radius * 3)) {
                 // Add it to the array
                 ballArray[i] = ball;

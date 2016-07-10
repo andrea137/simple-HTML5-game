@@ -43,7 +43,7 @@ function addListeners(inputStates, canvas) {
         inputStates.mousedown = false;
     }, false);
 
-    canvas.addEventListener('dblclick', function(){ 
+    canvas.addEventListener('dblclick', function(evt){ 
         inputStates.fire = true;
     });
 
