@@ -23,7 +23,9 @@ var GF = function () {
     var TIME_BETWEEN_LEVELS = 5000; // 5 seconds
     var currentLevelTime = TIME_BETWEEN_LEVELS;
     var points = 0;
-    var plopSound; // Sound of a ball exploding
+
+    var assets = {};
+
 
 
     // The monster !
@@ -35,6 +37,20 @@ var GF = function () {
         height: 50,
         speed: 100 // pixels/s this time !
     };
+
+    // Woman object and sprites
+    // sprite index corresponding to posture
+    var WOMAN_DIR_RIGHT = 6;
+    var WOMAN_DIR_LEFT = 2;
+    var woman = {
+        x: 100,
+        y: 200,
+        width: 48,
+        speed: 100, // pixels/s this time !
+        direction: WOMAN_DIR_RIGHT
+    };
+
+    var womanSprites = [];
 
     // array of balls to animate
     var ballArray = [];
@@ -104,6 +120,10 @@ var GF = function () {
 
                 // Check inputs and move the monster
                 updateMonsterPosition(delta);
+
+                // Draw a woman moving left and right
+                womanSprites[woman.direction].draw(ctx, woman.x, woman.y);
+                updateWomanPosition(delta);
 
                 // update and draw balls
                 updateBalls(delta);
@@ -202,6 +222,23 @@ var GF = function () {
         monster.y += calcDistanceToMove(delta, monster.speedY);
     }
 
+    function updateWomanPosition(delta) {
+
+        // check collision on left or right
+        if (((woman.x + woman.width) > canvas.width) || (woman.x < 0)) {
+            // inverse speed
+            woman.speed = -woman.speed;
+        }
+
+        // change sprite direction
+        if (woman.speed >= 0) {
+            woman.direction = WOMAN_DIR_RIGHT;
+        } else {
+            woman.direction = WOMAN_DIR_LEFT;
+        }
+        woman.x += calcDistanceToMove(delta, woman.speed);
+    }
+
     function updateBalls(delta) {
         // Move and draw each ball, test collisions, 
         for (var i = 0; i < ballArray.length; i++) {
@@ -237,7 +274,7 @@ var GF = function () {
             inputStates.fire = false;
             x = monster.x + 25;
             y = monster.y + 25;
-            
+
             // Compute the direction so that the bullet is fired
             // toward the mouse position
             var dx = inputStates.mousePos.x - x;
@@ -254,20 +291,20 @@ var GF = function () {
         // test collisions between bullets and balls
         var i = bulletsArray.length;
         while (i--) {
-        //for (var i = bulletsArray.length -1; i > 0;  i--) {
-                var bullet = bulletsArray[i];
-                // 1) move the bullet
-                bullet.move();
-                // 2) test if the ball collides with a wall
-                if (circleWallsCollide(bullet, w, h)) {
-                    console.log("Wall hit");
-                    bulletsArray.splice(i,1);
-                }
+            //for (var i = bulletsArray.length -1; i > 0;  i--) {
+            var bullet = bulletsArray[i];
+            // 1) move the bullet
+            bullet.move();
+            // 2) test if the ball collides with a wall
+            if (circleWallsCollide(bullet, w, h)) {
+                console.log("Wall hit");
+                bulletsArray.splice(i, 1);
+            }
             var j = ballArray.length;
             while (j--) {
-            //for (var j = 0; j < ballArray.length; j++) { 
+                //for (var j = 0; j < ballArray.length; j++) { 
                 // Test if the bullet hits one of the balls
-                var ball = ballArray[j]; 
+                var ball = ballArray[j];
                 if (circleCollide(bullet.x, bullet.y,
                     bullet.radius,
                     ball.x, ball.y, ball.radius)) {
@@ -277,10 +314,10 @@ var GF = function () {
                     bullet.color = 'yellow';
                     ball.color = 'green';
 
-                    bulletsArray.splice(i,1);
-                    ballArray.splice(j,1);
+                    bulletsArray.splice(i, 1);
+                    ballArray.splice(j, 1);
                     points += 1;
-                    
+
                     // Here, a sound effect greatly improves
                     // the experience!, change this with a different from plop
                     plopSound.play();
@@ -320,23 +357,29 @@ var GF = function () {
         }
     }
 
-    function loadAssets(callback) {
-        // here we should load the souds, the sprite sheets etc.
-        // then at the end call the callback function
 
-        // simple example that loads a sound and then calls the callback. We used the howler.js WebAudio lib here.
-        // Load sounds asynchronously using howler.js
-        plopSound = new Howl({
-            urls: ['http://mainline.i3s.unice.fr/mooc/plop.mp3'],
-            autoplay: false,
-            volume: 1,
-            onload: function () {
-                console.log("all sounds loaded");
-                // We're done!
-                callback();
-            }
-        });
-    }
+    function allAssetsLoaded(assetsLoaded) {
+        /* Adapted from mainline.i3s.unice.fr/mooc/SkywardBound/ */
+        plopSound = assetsLoaded.plop;
+
+        var SPRITE_WIDTH = 48;
+        var SPRITE_HEIGHT = 92;
+        var NB_POSTURES = 8;
+        var NB_FRAMES_PER_POSTURE = 13;
+
+        for (var i = 0; i < NB_POSTURES; i++) {
+            var sprite = new Sprite();
+
+            sprite.extractSprites(assetsLoaded.spriteSheet, NB_POSTURES, (i + 1),
+                NB_FRAMES_PER_POSTURE,
+                SPRITE_WIDTH, SPRITE_HEIGHT);
+            sprite.setNbImagesPerSecond(20);
+            womanSprites[i] = sprite;
+        }
+
+    };
+
+
     var start = function () {
         initFPSCounter();
 
@@ -358,8 +401,9 @@ var GF = function () {
         // We create tge balls: try to change the parameter
         createBalls(nbBalls);
 
-        loadAssets(function () {
+        loadAssets(function (assets) {
             // all assets (images, sounds) loaded, we can start the animation
+            allAssetsLoaded(assets);
             requestAnimationFrame(mainLoop);
         });
     };
