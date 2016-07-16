@@ -6,18 +6,20 @@ function circleCollide(x1, y1, r1, x2, y2, r2) {
 }
 
 // Collisions between rectangle and circle
-function circRectsOverlap(x0, y0, w0, h0, cx, cy, r) {
+// mx : margin for the x direction
+// my : margin for the y direction
+function circRectsOverlap(x0, y0, w0, h0, cx, cy, r, mx, my) {
     var testX = cx;
     var testY = cy;
 
-    if (testX < x0)
-        testX = x0;
-    if (testX > (x0 + w0))
-        testX = (x0 + w0);
-    if (testY < y0)
-        testY = y0;
-    if (testY > (y0 + h0))
-        testY = (y0 + h0);
+    if (testX < x0 + mx)
+        testX = x0 + mx;
+    if (testX > (x0 + w0 - mx))
+        testX = (x0 + w0 - mx);
+    if (testY < y0 + my)
+        testY = y0 + my;
+    if (testY > (y0 + h0 - my))
+        testY = (y0 + h0 - my);
 
     return (((cx - testX) * (cx - testX) + (cy - testY) * (cy - testY)) < r * r);
 }

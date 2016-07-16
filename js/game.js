@@ -27,21 +27,34 @@ var GF = function () {
     var assets = {};
 
 
-    // Woman object and sprites
+    // player object and sprites
     // sprite index corresponding to posture
-    var WOMAN_DIR_RIGHT = 6;
-    var WOMAN_DIR_LEFT = 2;
-    var woman = {
-        dead:false,
+    var PLAYER_DIR_RIGHT = 0;
+    var PLAYER_DIR_LEFT = 1;
+
+    var PLAYER_SPRITE_WIDTH = 567;
+    var PLAYER_SPRITE_HEIGHT = 556;
+    var PLAYER_NB_POSTURES = 2;
+    var PLAYER_NB_FRAMES_PER_POSTURE = 8;
+    var PLAYER_SPRITE_SCALE = 0.15;
+    // White space around the true image
+    var PLAYER_SPRITE_MARGIN_X = 20;
+    var PLAYER_SPRITE_MARGIN_Y = 5;
+
+    var player = {
+        dead: false,
         x: 10,
         y: 10,
-        width: 48,
-        height: 92,
+        width: PLAYER_SPRITE_WIDTH * PLAYER_SPRITE_SCALE,
+        height: PLAYER_SPRITE_HEIGHT * PLAYER_SPRITE_SCALE,
+        marginX : PLAYER_SPRITE_MARGIN_X,
+        marginY : PLAYER_SPRITE_MARGIN_Y,
         speed: 100, // pixels/s this time !
-        direction: WOMAN_DIR_RIGHT
+        scale: PLAYER_SPRITE_SCALE, // it depends on the size of the sprite
+        direction: PLAYER_DIR_RIGHT
     };
 
-    var womanSprites = [];
+    var playerSprites = [];
 
     // array of balls to animate
     var ballArray = [];
@@ -66,16 +79,16 @@ var GF = function () {
         // Clear the canvas
         clearCanvas();
 
-        if (woman.dead) {
+        if (player.dead) {
             currentGameState = gameStates.gameOver;
         }
 
         switch (currentGameState) {
             case gameStates.gameRunning:
 
-            
-                // Draw a woman moving left and right
-                womanSprites[woman.direction].draw(ctx, woman.x, woman.y);
+
+                // Draw the player moving left and right
+                playerSprites[player.direction].draw(ctx, player.x, player.y, player.scale);
                 updateWomanPosition(delta);
 
                 // update and draw balls
@@ -103,11 +116,11 @@ var GF = function () {
                 break;
             case gameStates.gameOver:
                 ctx.fillText("GAME OVER", 50, 100);
-                ctx.fillText("Press SPACE to start again", 50, 150);
-                ctx.fillText("Move with arrow keys", 50, 200);
-                ctx.fillText("Shoot with a double click", 50, 250);
+                ctx.fillText("Press 'r' to start again", 50, 150);
+                ctx.fillText("Move with arrow keys or 'w s a d' keys", 50, 200);
+                ctx.fillText("Shoot with the space bar", 50, 250);
                 ctx.fillText("Survive 5 seconds for next level", 50, 300);
-                if (inputStates.space) {
+                if (inputStates.restart) {
                     startNewGame();
                 }
                 break;
@@ -118,7 +131,7 @@ var GF = function () {
     };
 
     function startNewGame() {
-        woman.dead = false;
+        player.dead = false;
         currentLevelTime = 5000;
         currentLevel = 1;
         nbBalls = 5;
@@ -148,37 +161,37 @@ var GF = function () {
     }
 
     function updateWomanPosition(delta) {
-        woman.speedX = woman.speedY = 0;
+        player.speedX = player.speedY = 0;
         // check inputStates
         if (inputStates.left) {
-            woman.speedX = -woman.speed;
-            woman.direction = WOMAN_DIR_LEFT;
+            player.speedX = -player.speed;
+            player.direction = PLAYER_DIR_LEFT;
         }
         if (inputStates.up) {
-            woman.speedY = -woman.speed;
+            player.speedY = -player.speed;
         }
         if (inputStates.right) {
-            woman.speedX = woman.speed;
-            woman.direction = WOMAN_DIR_RIGHT;
+            player.speedX = player.speed;
+            player.direction = PLAYER_DIR_RIGHT;
         }
         if (inputStates.down) {
-            woman.speedY = woman.speed;
+            player.speedY = player.speed;
         }
         if (inputStates.space) {
         }
         if (inputStates.mousePos) {
         }
         if (inputStates.mousedown) {
-            woman.speed = 500;
+            player.speed = 500;
         } else {
             // mouse up
-            woman.speed = 100;
+            player.speed = 100;
         }
 
         // Compute the incX and inY in pixels depending
         // on the time elasped since last redraw
-        woman.x += calcDistanceToMove(delta, woman.speedX);
-        woman.y += calcDistanceToMove(delta, woman.speedY);
+        player.x += calcDistanceToMove(delta, player.speedX);
+        player.y += calcDistanceToMove(delta, player.speedY);
     }
 
     function updateBalls(delta) {
@@ -192,14 +205,15 @@ var GF = function () {
             // 2) test if the ball collides with a wall
             testCollisionWithWalls(ball, w, h);
 
-            // Test if the woman collides
-            if (circRectsOverlap(woman.x, woman.y,
-                woman.width, woman.height,
-                ball.x, ball.y, ball.radius)) {
+            // Test if the player collides
+            if (circRectsOverlap(player.x, player.y,
+                player.width, player.height,
+                ball.x, ball.y, ball.radius, 
+                player.marginX, player.marginY)) {
 
                 //change the color of the ball
                 ball.color = 'red';
-                woman.dead = true;
+                player.dead = true;
                 // Here, a sound effect greatly improves
                 // the experience!
                 plopSound.play();
@@ -211,25 +225,32 @@ var GF = function () {
     }
 
     function fire() {
-        if (inputStates.fire) {
-            console.log("fire");
-            inputStates.fire = false;
-            var x = woman.x + 25;
-            var y = woman.y + 25;
-
-            // Compute the direction so that the bullet is fired
-            // toward the mouse position
+        // find the relative center of the player
+        var xc = player.width / 2;
+        var yc = player.height / 2;
+        // compute the absolute center of the player
+        var x = player.x + xc;
+        var y = player.y + yc;
+        // Compute the direction so that the bullet is fired
+        // toward the mouse position
+        if (inputStates.mousePos) {
             var dx = inputStates.mousePos.x - x;
             var dy = inputStates.mousePos.y - y;
             var angle = Math.atan2(dy, dx);
-            var speed = 80;
+
+            drawSights(ctx, x, y, angle);
+        }
+        if (inputStates.space) {
+            console.log("fire");
+            inputStates.space = false;
+            var speed = 120;
             var bullet = new Ball(
                 x, y, angle, speed,
                 10);
             bulletsArray.push(bullet);
-
         }
         console.log(bulletsArray.length);
+
         // test collisions between bullets and balls
         var i = bulletsArray.length;
         while (i--) {
@@ -254,7 +275,7 @@ var GF = function () {
                     // here draw an explosion
                     createExplosion(ball.x, ball.y, ball.color, "Boom!");
                     plopSound.play();
-                    
+
                     bulletsArray.splice(i, 1);
                     ballArray.splice(j, 1);
                     points += 1;
@@ -270,6 +291,20 @@ var GF = function () {
         }
     }
 
+    // To draw a sights moving around the player
+    function drawSights(ctx, x, y, angle) {
+        ctx.save()
+        //the following line is for debug
+        //ctx.strokeRect(player.x + player.marginX, player.y + player.marginY, 
+        //player.width - 2*player.marginX, player.height - 2*player.marginY);
+        ctx.beginPath();
+        var radius = Math.min(player.width, player.height) / 2;
+        var newX = x + radius * Math.cos(angle);
+        var newY = y + radius * Math.sin(angle);
+        ctx.arc(newX, newY, 5, 0, 2 * Math.PI);
+        ctx.stroke();
+        ctx.restore()
+    }
     // To draw the explosions, taken from mainline.i3s.unice.fr/mooc/SkywardBound/ */
 
     function updateParticles(delta) {
@@ -302,10 +337,11 @@ var GF = function () {
                 30);
 
             // Do not create a ball on the player. We augmented the ball radius 
-            // to sure the ball is created far from the woman. 
-            if (!circRectsOverlap(woman.x, woman.y,
-                woman.width, woman.height,
-                ball.x, ball.y, ball.radius * 3)) {
+            // to sure the ball is created far from the player. 
+            if (!circRectsOverlap(player.x, player.y,
+                player.width, player.height,
+                ball.x, ball.y, ball.radius * 3,
+                player.marginX, player.marginY)) {
                 // Add it to the array
                 ballArray[i] = ball;
             } else {
@@ -321,19 +357,14 @@ var GF = function () {
         /* Adapted from mainline.i3s.unice.fr/mooc/SkywardBound/ */
         plopSound = assetsLoaded.plop;
 
-        var SPRITE_WIDTH = 48;
-        var SPRITE_HEIGHT = 92;
-        var NB_POSTURES = 8;
-        var NB_FRAMES_PER_POSTURE = 13;
-
-        for (var i = 0; i < NB_POSTURES; i++) {
+        for (var i = 0; i < PLAYER_NB_POSTURES; i++) {
             var sprite = new Sprite();
 
-            sprite.extractSprites(assetsLoaded.spriteSheet, NB_POSTURES, (i + 1),
-                NB_FRAMES_PER_POSTURE,
-                SPRITE_WIDTH, SPRITE_HEIGHT);
+            sprite.extractSprites(assetsLoaded.spriteRun, PLAYER_NB_POSTURES, (i + 1),
+                PLAYER_NB_FRAMES_PER_POSTURE,
+                PLAYER_SPRITE_WIDTH, PLAYER_SPRITE_HEIGHT);
             sprite.setNbImagesPerSecond(20);
-            womanSprites[i] = sprite;
+            playerSprites[i] = sprite;
         }
 
     };
