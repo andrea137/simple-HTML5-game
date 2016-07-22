@@ -115,11 +115,14 @@ var GF = function () {
                 // TO DO !
                 break;
             case gameStates.gameOver:
+                ctx.save();
+                ctx.fillStyle = 'LightGreen';
                 ctx.fillText("GAME OVER", 50, 100);
                 ctx.fillText("Press 'r' to start again", 50, 150);
                 ctx.fillText("Move with arrow keys or 'w s a d' keys", 50, 200);
                 ctx.fillText("Shoot with the space bar", 50, 250);
                 ctx.fillText("Survive 5 seconds for next level", 50, 300);
+                ctx.restore();  
                 if (inputStates.restart) {
                     startNewGame();
                 }
@@ -152,7 +155,7 @@ var GF = function () {
 
     function displayScore() {
         ctx.save();
-        ctx.fillStyle = 'Green';
+        ctx.fillStyle = 'LightGreen';
         ctx.fillText("Level: " + currentLevel, 300, 30);
         ctx.fillText("Time: " + (currentLevelTime / 1000).toFixed(1), 300, 60);
         ctx.fillText("Balls: " + nbBalls, 300, 90);
@@ -246,7 +249,7 @@ var GF = function () {
             var speed = 120;
             var bullet = new Ball(
                 x, y, angle, speed,
-                10);
+                10, true);
             bulletsArray.push(bullet);
         }
         console.log(bulletsArray.length);
@@ -273,7 +276,7 @@ var GF = function () {
                     ball.x, ball.y, ball.radius)) {
 
                     // here draw an explosion
-                    createExplosion(ball.x, ball.y, ball.color, "Boom!");
+                    createExplosion(ball.x, ball.y, "red", "Boom!");
                     plopSound.play();
 
                     bulletsArray.splice(i, 1);

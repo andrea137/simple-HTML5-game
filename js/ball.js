@@ -1,5 +1,5 @@
 // constructor function for balls
-function Ball(x, y, angle, v, diameter) {
+function Ball(x, y, angle, v, diameter, bullet) {
     this.x = x;
     this.y = y;
     this.angle = angle;
@@ -10,11 +10,27 @@ function Ball(x, y, angle, v, diameter) {
     this.draw = function (ctx) {
         ctx.save();
         ctx.beginPath();
-        ctx.fillStyle = this.color;
+        //ctx.fillStyle = this.color;
         ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+        grd = ctx.createRadialGradient(this.x, this.y, this.radius / 4,
+            this.x, this.y, this.radius);
+        if (bullet) {
+            grd.addColorStop(0, "red");
+            grd.addColorStop(1, "orange");
+        } else {
+            grd.addColorStop(0, "red");
+            grd.addColorStop(0.17, "orange");
+            grd.addColorStop(0.33, "yellow");
+            grd.addColorStop(0.5, "green");
+            grd.addColorStop(0.666, "blue");
+            grd.addColorStop(1, "violet");
+        }
+        ctx.fillStyle = grd;
+
+
         ctx.fill();
         ctx.restore();
-        this.color = 'black';
+        //this.color = 'red';
     };
 
     this.move = function () {

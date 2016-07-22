@@ -13,7 +13,6 @@ var assetsToLoadURLs = {
     xmas: { url: 'assets/sounds/xmas.mp3', buffer: true, loop: true, volume: 0.6 }
 */
     plop: { url: 'http://mainline.i3s.unice.fr/mooc/plop.mp3', buffer: false, loop: false, volume: 1.0 },
-    spriteSheet: { url: 'http://i.imgur.com/3VesWqx.png' },
     spriteRun: { url: 'assets/images/Run.png'}
 };
 

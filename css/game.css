@@ -1,5 +1,6 @@
 canvas {
   border: 1px solid black;
   cursor: all-scroll;
+  background: url("../assets/images/starBackground.jpg");
 }
 
