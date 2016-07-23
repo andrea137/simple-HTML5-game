@@ -19,10 +19,15 @@ var GF = function () {
         gameOver: 2
     };
     var currentGameState = gameStates.gameRunning;
+    var previousGameState = currentGameState;
     var currentLevel = 1;
     var TIME_BETWEEN_LEVELS = 5000; // 5 seconds
+    var POINTS_FOR_WIPES = 20;
+    var wipes = 0;
+    var wipesCounter = 0;
     var currentLevelTime = TIME_BETWEEN_LEVELS;
     var points = 0;
+
 
     var assets = {};
 
@@ -83,18 +88,29 @@ var GF = function () {
             currentGameState = gameStates.gameOver;
         }
 
+        
+
         switch (currentGameState) {
             case gameStates.gameRunning:
 
-
+                if (inputStates.pause) {
+                    ctx.save();
+                    var initialH = 75;
+                    ctx.fillStyle = 'LightGreen';
+                    ctx.fillText("GAME PAUSED", 50, initialH);
+                    ctx.fillText("Press 'esc' to start again", 50, initialH+50);
+                    ctx.restore();  
+                    break;
+                }
                 // Draw the player moving left and right
                 playerSprites[player.direction].draw(ctx, player.x, player.y, player.scale);
-                updateWomanPosition(delta);
+                updatePlayerPosition(delta);
 
                 // update and draw balls
                 updateBalls(delta);
 
                 // shoot
+                updateWipes();
                 fire();
                 updateParticles(delta);
                 drawParticles(ctx);
@@ -116,17 +132,21 @@ var GF = function () {
                 break;
             case gameStates.gameOver:
                 ctx.save();
+                var initialH = 75;
                 ctx.fillStyle = 'LightGreen';
-                ctx.fillText("GAME OVER", 50, 100);
-                ctx.fillText("Press 'r' to start again", 50, 150);
-                ctx.fillText("Move with arrow keys or 'w s a d' keys", 50, 200);
-                ctx.fillText("Shoot with the space bar", 50, 250);
-                ctx.fillText("Survive 5 seconds for next level", 50, 300);
+                ctx.fillText("GAME OVER", 50, initialH);
+                ctx.fillText("Press 'r' to start again", 50, initialH+50);
+                ctx.fillText("Move with arrow keys or 'w s a d' keys", 50, initialH+100);
+                ctx.fillText("Shoot with the space bar", 50, initialH+150);
+                ctx.fillText("Wipe with f (one every " +  POINTS_FOR_WIPES + " points)", 50, initialH+200);
+                ctx.fillText("Survive 5 seconds for next level", 50, initialH+250);
                 ctx.restore();  
                 if (inputStates.restart) {
                     startNewGame();
                 }
                 break;
+            
+
         }
 
         // call the animation loop every 1/60th of second
@@ -138,6 +158,9 @@ var GF = function () {
         currentLevelTime = 5000;
         currentLevel = 1;
         nbBalls = 5;
+        points = 0;
+        wipes = 0;
+        wipesCounter = 0;
         createBalls(nbBalls);
         bulletsArray = []
         currentGameState = gameStates.gameRunning;
@@ -160,10 +183,11 @@ var GF = function () {
         ctx.fillText("Time: " + (currentLevelTime / 1000).toFixed(1), 300, 60);
         ctx.fillText("Balls: " + nbBalls, 300, 90);
         ctx.fillText("Points: " + points, 300, 120);
+        ctx.fillText("Wipe: " + wipes, 300, 150);
         ctx.restore();
     }
 
-    function updateWomanPosition(delta) {
+    function updatePlayerPosition(delta) {
         player.speedX = player.speedY = 0;
         // check inputStates
         if (inputStates.left) {
@@ -227,6 +251,14 @@ var GF = function () {
         }
     }
 
+    function updateWipes() {
+        if (wipesCounter === POINTS_FOR_WIPES) {
+            wipes +=1
+            wipesCounter = 0;
+        }
+    }
+
+
     function fire() {
         // find the relative center of the player
         var xc = player.width / 2;
@@ -251,6 +283,19 @@ var GF = function () {
                 x, y, angle, speed,
                 10, true);
             bulletsArray.push(bullet);
+        } else if (inputStates.wipes && (wipes > 0)) {
+            console.log("wipe");          
+            inputStates.wipes = false;
+            wipes -= 1;
+            var nSuper = 20
+            for (var i = 0; i < nSuper; i++) {
+                var speed = 200;
+                console.log(2*Math.PI/nSuper*i);
+                var bullet = new Ball(
+                    x, y, 2*Math.PI/nSuper*i, speed,
+                    15, true);
+                bulletsArray.push(bullet);
+            }
         }
         console.log(bulletsArray.length);
 
@@ -282,6 +327,7 @@ var GF = function () {
                     bulletsArray.splice(i, 1);
                     ballArray.splice(j, 1);
                     points += 1;
+                    wipesCounter += 1; 
 
                     // Here, a sound effect greatly improves
                     // the experience!, change this with a different from plop

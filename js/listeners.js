@@ -11,8 +11,12 @@ function addListeners(inputStates, canvas) {
             inputStates.down = true;
         } else if (event.keyCode === 32) {
             inputStates.space = true;
+        } else if (event.keyCode === 70) {
+            inputStates.wipes = true;
         } else if (event.keyCode === 82) {
             inputStates.restart = true;
+        } else if (event.keyCode === 27) {
+            inputStates.pause =  !inputStates.pause;
         } 
     }, false);
 
@@ -28,6 +32,8 @@ function addListeners(inputStates, canvas) {
             inputStates.down = false;
         } else if (event.keyCode === 32) {
             inputStates.space = false;
+        } else if (event.keyCode === 70) {
+            inputStates.wipes = false;
         } else if (event.keyCode === 82) {
             inputStates.restart = false;
         } 
@@ -46,11 +52,6 @@ function addListeners(inputStates, canvas) {
     canvas.addEventListener('mouseup', function (evt) {
         inputStates.mousedown = false;
     }, false);
-
-    canvas.addEventListener('dblclick', function(evt){ 
-        inputStates.fire = true;
-    });
-
 }
 
 function getMousePos(evt, canvas) {
