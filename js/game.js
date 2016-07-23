@@ -269,7 +269,10 @@ var GF = function () {
         // Compute the direction so that the bullet is fired
         // toward the mouse position
         if (inputStates.mousePos) {
-            var dx = inputStates.mousePos.x - x;
+            var dx = Math.abs(inputStates.mousePos.x - x);
+            if (player.direction === PLAYER_DIR_LEFT) {
+                dx *= -1;
+            }
             var dy = inputStates.mousePos.y - y;
             var angle = Math.atan2(dy, dx);
 
@@ -287,7 +290,7 @@ var GF = function () {
             console.log("wipe");          
             inputStates.wipes = false;
             wipes -= 1;
-            var nSuper = 20
+            var nSuper = 40
             for (var i = 0; i < nSuper; i++) {
                 var speed = 200;
                 console.log(2*Math.PI/nSuper*i);
