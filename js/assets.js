@@ -13,7 +13,9 @@ var assetsToLoadURLs = {
     xmas: { url: 'assets/sounds/xmas.mp3', buffer: true, loop: true, volume: 0.6 }
 */
     plop: { url: 'http://mainline.i3s.unice.fr/mooc/plop.mp3', buffer: false, loop: false, volume: 1.0 },
+    soundtrack: { url: 'assets/sounds/soundtrack.mp3', buffer: true, loop: true, volume: 1.0 },
     spriteRun: { url: 'assets/images/Run.png'}
+
 };
 
 function loadAssets(callback) {
@@ -69,7 +71,8 @@ function loadAssetsUsingHowlerAndNoXhr(assetsToBeLoaded, callback) {
         } else {
             // We assume the asset is an audio file
             console.log("loading " + name + " buffer : " + assetsToBeLoaded[name].loop);
-            assetsLoaded[name] = new Howl({
+            var error = false;
+            var tmp = new Howl({
                 urls: [url],
                 buffer: assetsToBeLoaded[name].buffer,
                 loop: assetsToBeLoaded[name].loop,
@@ -80,8 +83,20 @@ function loadAssetsUsingHowlerAndNoXhr(assetsToBeLoaded, callback) {
                         callback(assetsLoaded);
                     }
                     console.log("Loaded asset " + loadedAssets);
+                },
+                onloaderror: function () {
+                    if (++loadedAssets >= numberOfAssetsToLoad) {
+                        callback(assetsLoaded);
+                    }
+                    console.log("Loaded asset " + loadedAssets);
+                    error = true;
                 }
             }); // End of howler.js callback
+            if (error) {
+                assetsLoaded[name] = undefined;
+            } else {
+                assetsLoaded[name] = tmp;
+            }
         } // if
 
     } // for
