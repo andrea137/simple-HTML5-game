@@ -292,10 +292,12 @@ var GF = function () {
         // Compute the direction so that the bullet is fired
         // toward the mouse position
         if (inputStates.mousePos) {
-            var dx = Math.abs(inputStates.mousePos.x - x);
-            if (player.direction === PLAYER_DIR_LEFT) {
-                dx *= -1;
-            }
+            var dx = inputStates.mousePos.x - x;
+            // Uncomment the following four lines to constrain the player to shoot in the direction of the movement.
+            //var dx = Math.abs(inputStates.mousePos.x - x);
+            //if (player.direction === PLAYER_DIR_LEFT) {
+            //    dx *= -1;
+            //}
             var dy = inputStates.mousePos.y - y;
             var angle = Math.atan2(dy, dx);
 
