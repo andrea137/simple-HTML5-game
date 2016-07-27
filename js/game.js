@@ -311,6 +311,7 @@ var GF = function () {
                 x, y, angle, speed,
                 10, true);
             bulletsArray.push(bullet);
+            laserSound.play();
         } else if (inputStates.wipes && (wipes > 0)) {
             console.log("wipe");
             inputStates.wipes = false;
@@ -324,6 +325,7 @@ var GF = function () {
                     15, true);
                 bulletsArray.push(bullet);
             }
+            laserSuperSound.play()
         }
         //console.log(bulletsArray.length);
 
@@ -434,6 +436,8 @@ var GF = function () {
     function allAssetsLoaded(assetsLoaded) {
         /* Adapted from mainline.i3s.unice.fr/mooc/SkywardBound/ */
         plopSound = assetsLoaded.plop;
+        laserSound = assetsLoaded.laser;
+        laserSuperSound = assetsLoaded.laserSuper;
 
         soundtrack = assetsLoaded.soundtrack;
 
