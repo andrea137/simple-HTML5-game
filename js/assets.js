@@ -15,7 +15,7 @@ var assetsToLoadURLs = {
     plop: { url: 'http://mainline.i3s.unice.fr/mooc/plop.mp3', buffer: false, loop: false, volume: 1.0 },
     laser: { url: 'assets/sounds/laser-shot-silenced.wav', buffer: false, loop: false, volume: 0.2 },
     laserSuper: { url: 'assets/sounds/laser-element.wav', buffer: false, loop: false, volume: 0.5 },
-    soundtrack: { url: 'assets/sounds/soundtrack.mp3', buffer: true, loop: true, volume: 1.0 },
+    soundtrack: { url: 'assets/sounds/soundtrack.mp3', buffer: true, loop: true, volume: 0.7 },
     spriteRun: { url: 'assets/images/Run.png'}
 
 };
